@@ -90,7 +90,7 @@
     <!-- 추천 10곡  -->
     <div class="container mt-5">
         <div class="mb-4">
-            <h5 class="text-center mb-3">국가별 음악 K-POP</h5>
+            <h5 class="text-center mb-3">Play List</h5>
             <div class="top-buttons">
                 <button class="btn btn-success btn-sm" onclick="playRandomMusic()"><i class="bi bi-shuffle"></i> 무작위듣기</button>
                 <button class="btn btn-warning btn-sm" onclick="addAllToStorage()"><i class="bi bi-file-earmark-plus-fill"></i> 전체보관함추가</button>
@@ -138,116 +138,156 @@
 <script>
     let audioPlayer = document.getElementById('audio-player');
     let musicPlayer = document.getElementById('music-player');
+    let musicQueue = []; // 현재 재생 목록을 저장할 배열
+    let currentTrackIndex = -1; // 현재 재생 중인 곡의 인덱스
 
     // 음악 재생
     function playMusic(mno, title, singer, genre, year, country, ment) {
-        console.log("Music no: ", mno);
-        console.log("Music title: ", title);
-        console.log("Music singer: ", singer);
-        console.log("Music genre: ", genre);
-        console.log("Music year: ", year);
-        console.log("Music country: ", country);
-        console.log("Music ment: ", ment);
+    console.log("Music no: ", mno);
+    console.log("Music title: ", title);
+    console.log("Music singer: ", singer);
+    console.log("Music genre: ", genre);
+    console.log("Music year: ", year);
+    console.log("Music country: ", country);
+    console.log("Music ment: ", ment);
 
-        // 음악 플레이어 업데이트
-        document.getElementById('music-image').src = '/music/musiccover/' + mno;  // 음악 이미지
-        document.getElementById('music-title').textContent = title;
-        document.getElementById('audio-player').src = '/music/mp3play/' + mno;  // 오디오 파일 URL
-        document.getElementById('music-player').classList.remove('d-none');
+    // 음악 플레이어 업데이트
+    document.getElementById('music-image').src = '/music/musiccover/' + mno;  // 음악 이미지
+    document.getElementById('music-title').textContent = title;
+    document.getElementById('audio-player').src = '/music/mp3play/' + mno;  // 오디오 파일 URL
+    document.getElementById('music-player').classList.remove('d-none');
 
-        // 오디오 재생
-        audioPlayer.play();
-    }
+    // 오디오 재생
+    audioPlayer.play();
+
+    // 재생 목록 업데이트
+    currentTrackIndex = -1; // 현재 트랙 인덱스 초기화
+    musicQueue = []; // 큐 초기화
+}
 
     // 무작위 재생
     async function playRandomMusic() {
-        console.log("Playing a random song from the current list.");
+    console.log("Playing a random song from the current list.");
 
-        // 현재 페이지의 모든 곡의 ID를 가져옵니다.
-        const musicItems = document.querySelectorAll('.music-list-item');
-        const musicIds = Array.from(musicItems).map(item => item.dataset.mno);
+    // 현재 페이지의 모든 곡의 ID를 가져옵니다.
+    const musicItems = document.querySelectorAll('.music-list-item');
+    const musicIds = Array.from(musicItems).map(item => item.dataset.mno);
 
-        if (musicIds.length === 0) {
-            console.log("No music items found.");
-            return;
-        }
+    if (musicIds.length === 0) {
+    console.log("No music items found.");
+    return;
+}
 
-        try {
-            const response = await fetch('/music/play_random', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ music_ids: musicIds }),
-            });
+    try {
+    const response = await fetch('/music/play_random', {
+    method: 'POST',
+    headers: {
+    'Content-Type': 'application/json',
+},
+    body: JSON.stringify({ music_ids: musicIds }),
+});
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch random song');
-            }
+    if (!response.ok) {
+    throw new Error('Failed to fetch random song');
+}
 
-            const data = await response.json();
+    const data = await response.json();
 
-            // Check if all required properties exist in the response data
-            if (data.mno && data.title && data.singer && data.genre && data.year && data.country && data.ment) {
-                playMusic(data.mno, data.title, data.singer, data.genre, data.year, data.country, data.ment);
-            } else {
-                throw new Error('Incomplete data received');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
+    // Check if all required properties exist in the response data
+    if (data.mno && data.title && data.singer && data.genre && data.year && data.country && data.ment) {
+    playMusic(data.mno, data.title, data.singer, data.genre, data.year, data.country, data.ment);
+    addToQueue(data.mno); // 재생 목록에 추가
+} else {
+    throw new Error('Incomplete data received');
+}
+} catch (error) {
+    console.error('Error:', error);
+}
+}
+
+    // 곡을 재생 목록에 추가
+    function addToQueue(mno) {
+    const musicItems = document.querySelectorAll('.music-list-item');
+    const musicQueue = Array.from(musicItems).map(item => item.dataset.mno);
+    currentTrackIndex = musicQueue.indexOf(mno);
+    musicQueue.splice(currentTrackIndex, 1);
+}
+
+    // 곡이 끝났을 때 호출되는 함수
+    function onTrackEnded() {
+    currentTrackIndex++;
+    if (currentTrackIndex < musicQueue.length) {
+    const nextTrackId = musicQueue[currentTrackIndex];
+    fetch(`/music/get_music_info/${nextTrackId}`)
+    .then(response => response.json())
+    .then(data => {
+    if (data.mno && data.title && data.singer && data.genre && data.year && data.country && data.ment) {
+    playMusic(data.mno, data.title, data.singer, data.genre, data.year, data.country, data.ment);
+    addToQueue(data.mno); // 다음 곡을 재생 목록에 추가
+} else {
+    throw new Error('Incomplete data received');
+}
+})
+    .catch(error => console.error('Error:', error));
+} else {
+    console.log("No more tracks in the queue.");
+}
+}
+
+    // 음악 플레이어의 ended 이벤트에 이벤트 리스너 추가
+    audioPlayer.addEventListener('ended', onTrackEnded);
 
     // 보관함 추가
     async function addToStorage(mno) {
-        try {
-            let response = await fetch('/music/add_to_storage', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ mno: mno }),
-            });
+    try {
+    let response = await fetch('/music/add_to_storage', {
+    method: 'POST',
+    headers: {
+    'Content-Type': 'application/json',
+},
+    body: JSON.stringify({ mno: mno }),
+});
 
-            let result = await response.json();
-            alert(result.message);
-        } catch (error) {
-            console.error("Error adding to storage:", error);
-            alert("Error adding to storage.");
-        }
-    }
+    let result = await response.json();
+    alert(result.message);
+} catch (error) {
+    console.error("Error adding to storage:", error);
+    alert("Error adding to storage.");
+}
+}
 
     // 보관함 전체 추가
     async function addAllToStorage() {
-        console.log("Adding all selected songs to storage.");
+    console.log("Adding all selected songs to storage.");
 
-        const musicItems = document.querySelectorAll('.music-list-item');
-        const musicIds = Array.from(musicItems).map(item => parseInt(item.dataset.mno, 10));
+    const musicItems = document.querySelectorAll('.music-list-item');
+    const musicIds = Array.from(musicItems).map(item => parseInt(item.dataset.mno, 10));
 
-        if (!musicIds.length) {
-            console.log("No music items found.");
-            return;
-        }
+    if (!musicIds.length) {
+    console.log("No music items found.");
+    return;
+}
 
-        try {
-            const response = await fetch('/music/add_all_storage', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ music_ids: musicIds }), // Correctly format data
-            });
+    try {
+    const response = await fetch('/music/add_all_storage', {
+    method: 'POST',
+    headers: {
+    'Content-Type': 'application/json',
+},
+    body: JSON.stringify({ music_ids: musicIds }), // Correctly format data
+});
 
-            if (!response.ok) {
-                throw new Error('Failed to add selected songs to storage');
-            }
+    if (!response.ok) {
+    throw new Error('Failed to add selected songs to storage');
+}
 
-            const result = await response.json();
-            alert(result.message);
-        } catch (error) {
-            console.error('Error:', error);
-            alert("Error adding to storage.");
-        }
-    }
+    const result = await response.json();
+    alert(result.message);
+} catch (error) {
+    console.error('Error:', error);
+    alert("Error adding to storage.");
+}
+}
 </script>
+
 {% endblock %}

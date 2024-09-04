@@ -12,7 +12,7 @@
       <!-- 앨범 Image -->
       <div class="col-md-6 mb-4 mb-md-0">
         <div class="card shadow-sm h-100">
-          <img id="album-cover" src="{{ '/music/musiccover/' + storage_items[0].music.mno|string if storage_items else 'default-album-cover.jpg' }}" class="card-img-top" alt="앨범 커버 이미지">
+          <img id="album-cover" src="/static/img/logo.png" style="width: 521px; height: 450px" class="card-img-top" alt="앨범 커버 이미지">
           <div class="card-body">
           </div>
         </div>
@@ -89,7 +89,7 @@
         </div>
         <div class="music-actions">
           <button class="btn btn-primary btn-sm" onclick="playMusic('{{ item.music.mno }}', '{{ item.music.title }}', '{{ item.music.singer }}', '{{ item.music.genre }}', '{{ item.music.year }}', '{{ item.music.country }}', '{{ item.music.ment }}')"><i class="bi bi-play-circle"></i></button>
-          <button class="btn btn-danger btn-sm" onclick="removeFromStorage('{{ item.sno }}')">삭제<i class="bi bi-trash"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="removeFromStorage('{{ item.sno }}')"><i class="bi bi-trash"></i></button>
         </div>
       </div>
       {% endfor %}

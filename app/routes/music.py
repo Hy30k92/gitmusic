@@ -126,7 +126,7 @@ async def mp3play(mno: int, db: Session = Depends(get_db) ):
             while chunk := await f.read(64 * 1024):
                 yield chunk
 
-    return StreamingResponse(iterfile(),media_type='audio/mp3')
+    return StreamingResponse(iterfile(),media_type='audio/mpeg')
 
 # 음악 이미지
 @music_router.get('/musiccover/{mno}', response_class=HTMLResponse)
