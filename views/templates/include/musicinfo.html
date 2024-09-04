@@ -120,22 +120,6 @@
     justify-content: flex-end;
     margin-bottom: 20px;
   }
-
-  @media (max-width: 870px) {
-    .music-actions,
-    .top-buttons {
-      flex-direction: column;
-      gap: 5px;
-      margin-top: 10px;
-    }
-
-    .music-actions button,
-    .top-buttons button {
-      font-size: 0.8rem;
-      padding: 5px 8px;
-      min-width: 5px;
-    }
-  }
   /* 테이블 스타일 */
   table tbody tr {
       border-bottom: 1px solid silver;
@@ -143,12 +127,11 @@
   table tbody tr:first-child {
       border-top: none;
   }
-/*  */
-
+  /*음악리스트 위치설정*/
   .row {
       display: flex;
       justify-content: flex-start; /* 기본적으로 모든 자식을 왼쪽에 정렬 */
-     }
+  }
 
   .col-2 {
       /* 기본 스타일 설정 */
@@ -172,5 +155,22 @@
       margin-left: 1px; /* 4번 열과 5번 열 사이의 간격을 조정 */
       margin-right: 0; /* 오른쪽 여백을 설정하여 필요시 조정 */
   }
+  @media (max-width: 970px) {
+    .music-actions,
+    .top-buttons {
+      flex-direction: column;
+      gap: 5px;
+      margin-top: 10px;
+    }
+
+    .music-actions button,
+    .top-buttons button {
+      font-size: 0.8rem;
+      padding: 5px 8px;
+      min-width: 5px;
+    }
+  }
+
+
 
 </style>
