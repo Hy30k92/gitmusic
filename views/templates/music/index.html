@@ -18,53 +18,37 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
         margin-bottom: 20px; /* 섹션 간 여백 */
     }
-    .col-1 {
-        display: flex;
-        align-items: center; /* Vertically centers the content within the column */
-        justify-content: center; /* Horizontally centers the content */
-        flex-direction: row; /* Ensures content stays in a row layout */
-    }
-     /* 화면 크기가 600px 이하일 때 */
-     @media (max-width: 600px) {
+
+/**/
+     /* 화면이 970px 이하로 줄어들 때 적용될 스타일 */
+     @media (max-width: 970px) {
          .music-list-item {
-             flex-direction: column;
-             align-items: flex-start;
+             flex-direction: column; /* 세로 방향으로 항목 정렬 */
+             text-align: center; /* 텍스트 중앙 정렬 */
+             align-items: center; /* 모든 항목을 중앙으로 정렬 */
+             padding: 0; /* 여백 제거 */
+             border: none; /* 구분선 제거 (선택적) */
          }
 
-         .track-info, .music-title, .music-actions {
-             width: 100%;
-             text-align: left;
+         .music-list-item .col-2 {
+             width: 40%; /* 열의 너비를 전체 폭으로 설정 */
+             margin: 0; /* 마진 제거 */
+             padding: 0; /* 수직 패딩 추가 (선택적) */
+             box-sizing: border-box; /* 패딩과 테두리가 너비에 포함되도록 설정 */
+             justify-content: center; /* 열의 항목을 수평 중앙 정렬 */
          }
 
-         .track-info {
-             display: flex;
-             flex-direction: column;
-             align-items: center;
+         .music-list-item img.mimg {
+             max-width: 100%; /* 이미지가 열의 너비를 넘지 않도록 설정 */
+             height: auto; /* 이미지 비율 유지 */
          }
 
-         .track-info .mimg {
-             width: 80px;
-             height: 80px;
-         }
-
-         .music-title {
-             text-align: center;
-         }
-
-         .music-actions {
-             display: flex;
-             justify-content: space-between;
-             margin-top: 10px;
-         }
-
-         .music-actions button {
-             font-size: 12px;
-             width: 30px;
-             height: 30px;
-             padding: 0;
+         .music-list-item span,
+         .music-list-item button {
+             display: block; /* 버튼과 텍스트를 블록으로 변환하여 중앙 정렬 */
+             margin: 0 auto; /* 수평 중앙 정렬 */
          }
      }
-
 </style>
 {% endblock %}
 
@@ -134,32 +118,32 @@
     <span class="row header">
         <span class="col-2 text-center font-weight-bold">순번</span>
         <span class="col-2 text-center font-weight-bold">제목</span>
-        <span class="col-2 text-md-end font-weight-bold">아티스트</span>
+        <span class="col-2 text-center font-weight-bold">아티스트</span>
         <span class="col-2 text-md-center font-weight-bold">재생</span>
         <span class="col-2 text-md-start font-weight-bold">보관함추가</span>
     </span>
-            </div>
-            <div class="music-list-container">
-                {% for music in mlist %}
-                <div class="music-list-item row" data-mno="{{ music.mno }}">
-                    <div class="col-2 text-center">
-                        <span class="track-number" style="color: black">{{ loop.index }}</span>
-                        <img class="mimg" src="/music/musiccover/{{ music.mno }}" alt="{{ music.title }}">
-                    </div>
-                    <div class="col-2 text-center">
-                        <span style="color: black">{{ music.title }}</span>
-                    </div>
-                    <div class="col-2 text-md-end">
-                        <span style="color: black">{{ music.singer }}</span>
-                    </div>
-                    <div class="col-2 text-md-center">
-                        <button class="btn btn-primary btn-sm" onclick="playMusic('{{ music.mno }}', '{{ music.title }}', '{{ music.singer }}', '{{ music.genre }}', '{{ music.year }}', '{{ music.country }}', '{{ music.ment }}')"><i class="bi bi-play-circle"></i></button>
-                    </div>
-                    <div class="col-2 text-md-start">
-                        <button class="btn btn-secondary btn-sm" onclick="addToStorage('{{ music.mno }}')"><i class="bi bi-inboxes"></i></button>
-                    </div>
+    </div>
+        <div class="music-list-container">
+        {% for music in mlist %}
+            <div class="music-list-item row" data-mno="{{ music.mno }}">
+                <div class="col-2 text-center">
+                    <span class="track-number" style="color: black">{{ loop.index }}</span>
+                    <img class="mimg" src="/music/musiccover/{{ music.mno }}" alt="{{ music.title }}">
                 </div>
-                {% endfor %}
+                <div class="col-2 text-center">
+                    <span style="color: black">{{ music.title }}</span>
+                </div>
+                <div class="col-2 text-center">
+                    <span style="color: black">{{ music.singer }}</span>
+                </div>
+                <div class="col-2 text-md-center">
+                    <button class="btn btn-primary btn-sm" onclick="playMusic('{{ music.mno }}', '{{ music.title }}', '{{ music.singer }}', '{{ music.genre }}', '{{ music.year }}', '{{ music.country }}', '{{ music.ment }}')"><i class="bi bi-play-circle"></i></button>
+                </div>
+                <div class="col-2 text-md-start">
+                    <button class="btn btn-secondary btn-sm" onclick="addToStorage('{{ music.mno }}')"><i class="bi bi-inboxes"></i></button>
+                </div>
+            </div>
+            {% endfor %}
             </div>
         </div>
     </div>
