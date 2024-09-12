@@ -60,6 +60,36 @@ async def ballad(req: Request, db: Session = Depends(get_db)):
         print(f'▷▷▷ ballad_list 오류발생 : {str(ex)}')
         return RedirectResponse(url='/member/error', status_code=303)
 
+# 장르 - rock
+@music_router.get('/rock')
+async def rock(req: Request, db: Session = Depends(get_db)):
+    try:
+        mlist = MusicService.get_music_genre(db, 'rock')
+        return templates.TemplateResponse('/music/rock.html', {'request': req, 'mlist': mlist})
+    except Exception as ex:
+        print(f'▷▷▷ ballad_list 오류발생 : {str(ex)}')
+        return RedirectResponse(url='/member/error', status_code=303)
+
+# 장르 - ost
+@music_router.get('/ost')
+async def ost(req: Request, db: Session = Depends(get_db)):
+    try:
+        mlist = MusicService.get_music_genre(db, 'ost')
+        return templates.TemplateResponse('/music/ost.html', {'request': req, 'mlist': mlist})
+    except Exception as ex:
+        print(f'▷▷▷ ballad_list 오류발생 : {str(ex)}')
+        return RedirectResponse(url='/member/error', status_code=303)
+
+# 장르 - r&b
+@music_router.get('/rnb')
+async def rnb(req: Request, db: Session = Depends(get_db)):
+    try:
+        mlist = MusicService.get_music_genre(db, 'r&b')
+        return templates.TemplateResponse('/music/rnb.html', {'request': req, 'mlist': mlist})
+    except Exception as ex:
+        print(f'▷▷▷ ballad_list 오류발생 : {str(ex)}')
+        return RedirectResponse(url='/member/error', status_code=303)
+
 # 국가별 - kpop
 @music_router.get('/kpop')
 async def kpop(req: Request, db: Session = Depends(get_db)):
@@ -116,7 +146,7 @@ async def test(req: Request):
 @music_router.get('/mp3play/{mno}', response_class=HTMLResponse)
 async def mp3play(mno: int, db: Session = Depends(get_db) ):
 
-    MUSIC_PATH = 'd:/test/music/'
+    MUSIC_PATH = '/home/ubuntu/data/music'
     music_fname = Mp3Service.music_mp3(db, mno)
 
     file_path = os.path.join(MUSIC_PATH, music_fname)
@@ -126,16 +156,16 @@ async def mp3play(mno: int, db: Session = Depends(get_db) ):
             while chunk := await f.read(64 * 1024):
                 yield chunk
 
-    return StreamingResponse(iterfile(),media_type='audio/mpeg')
+    return StreamingResponse(iterfile(),media_type='audio/mp3')
 
 # 음악 이미지
 @music_router.get('/musiccover/{mno}', response_class=HTMLResponse)
 async def musiccover(mno: int, db: Session = Depends(get_db) ):
 
-    MUSICIMAGE_PATH = 'd:/test/musicimage/'
+    MUSICIMAGE_PATH = '/home/ubuntu/data/musicimage'
     mp3_image = Mp3Service.selectone_musicimage(db, mno)
 
-    file_path = os.path.join(MUSICIMAGE_PATH, mp3_image)
+    file_path = os.path.join(MUSICIMAGE_PATH, mp3_image )
 
     return FileResponse(file_path, media_type='image/jpeg')
 
@@ -150,7 +180,7 @@ async def random_mvno(db: Session = Depends(get_db)):
 @music_router.get('/mp4play/{mvno}', response_class=HTMLResponse)
 async def mp4play(mvno: int, db: Session = Depends(get_db) ):
 
-    MV_PATH = 'd:/test/mv/'
+    MV_PATH = '/home/ubuntu/data/mv'
     mv_fname = MusicVideoService.selectone_file(db, mvno)
 
     file_path = os.path.join(MV_PATH, mv_fname)
@@ -166,7 +196,7 @@ async def mp4play(mvno: int, db: Session = Depends(get_db) ):
 @music_router.get('/mvcover/{mvno}', response_class=HTMLResponse)
 async def mvcover(mvno: int, db: Session = Depends(get_db) ):
 
-    IMAGE_PATH = 'd:/test/mvimage/'
+    IMAGE_PATH = '/home/ubuntu/data/mvimage'
     mv_image = MusicVideoService.selectone_mvimage(db, mvno)
 
     file_path = os.path.join(IMAGE_PATH, mv_image )
@@ -342,5 +372,3 @@ async def remove_all_storage(req: Request, db: Session = Depends(get_db)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail="모든 곡을 삭제하는데 문제가 발생했습니다.")
-
-

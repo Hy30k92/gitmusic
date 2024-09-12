@@ -12,4 +12,4 @@ class NewReply(BaseModel):
     reply: str
     userid: str
     bno: int
-    rpno: Optional[int] = Field(default=None)  # 선택사항
+    rpno: Optional[int] = None  # 선택사항

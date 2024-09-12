@@ -1,16 +1,16 @@
 import logging
 import os
 from datetime import datetime
-
+from typing import Optional
 from fastapi import Form, HTTPException
-from sqlalchemy import select, insert, or_, func, update, delete
+from sqlalchemy import select, insert, or_, func, update, delete, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import contains_eager, Session, joinedload
 
 from app.model.board import Board, BoardFile, Reply
-from app.schema.board import BoardCreate
+from app.schema.board import BoardCreate, NewReply
 
-UPLOAD_PATH = 'D:/test/'
+UPLOAD_PATH = '/home/ubuntu/data/files'
 
 
 def get_board_data(title: str = Form(...), userid: str = Form(...),
@@ -112,7 +112,7 @@ class BoardService:
             stmt = select(Board).outerjoin(Board.replys) \
                 .options(contains_eager(Board.replys)) \
                 .where(Board.bno == bno) \
-                .order_by(Reply.rpno)
+                .order_by(Reply.rpno, Reply.regdate)
 
             result = db.execute(stmt)
             db.commit()
@@ -135,12 +135,15 @@ class BoardService:
     @staticmethod
     def insert_reply(db, rp):
         try:
-            stmt = select(func.coalesce(func.max(Reply.rno), 0) + 1)
+            db.execute(text("SET FOREIGN_KEY_CHECKS = 0;"))
+            stmt=text("SELECT AUTO_INCREMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'ubuntu' AND TABLE_NAME ='reply';")
+            # stmt = select(func.coalesce(func.max(Reply.rno), 0) + 1)
             next_rno = db.execute(stmt).scalar_one()
             stmt = insert(Reply).values(userid=rp.userid, reply=rp.reply,
                                         bno=rp.bno, rpno=next_rno)
             result = db.execute(stmt)
             db.commit()
+            db.execute(text("SET FOREIGN_KEY_CHECKS = 1;"))
             return result
 
         except SQLAlchemyError as ex:
@@ -160,14 +163,19 @@ class BoardService:
             print(f'▶▶▶ insert_rreply에서 오류 발생 : {str(ex)}')
             db.rollback()
 
+
     @staticmethod
     def delete_board(db, bno: int):
+        # SQLite에서 외래 키 제약 조건 활성화
+        # db.execute(text("PRAGMA foreign_keys=ON"))   # sqlite
+        db.execute(text("SET FOREIGN_KEY_CHECKS = 0;")) # mairadb
         try:
             # 레코드 존재 확인
             board_exists = db.execute(select(Board).where(Board.bno == bno)).scalar_one_or_none()
 
             if not board_exists:
                 print("삭제할 게시물이 존재하지 않습니다.")
+                db.execute(text("SET FOREIGN_KEY_CHECKS = 1;"))
                 return 0  # 삭제할 레코드가 없으면 0을 반환
 
             # 외래 키 제약 조건에 따라 연관된 데이터 먼저 삭제
@@ -180,6 +188,7 @@ class BoardService:
             db.commit()
 
             print("게시물이 성공적으로 삭제되었습니다.")
+            db.execute(text("SET FOREIGN_KEY_CHECKS = 1;"))
             return 1  # 삭제 성공 시 1 반환
 
         except SQLAlchemyError as ex:

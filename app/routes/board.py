@@ -59,7 +59,7 @@ async def write(req: Request):
 
 @board_router.post('/write')
 async def writeok(board: BoardCreate = Depends(get_board_data),
-                  files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
+                  files: List[UploadFile] = File(..., max_size=1024*1024*100), db: Session = Depends(get_db)):
     try:
         print(board)
         attachs = await process_upload(files)
@@ -89,16 +89,18 @@ async def view(req: Request, bno: int, db: Session = Depends(get_db)):
 @board_router.post("/reply", response_class=HTMLResponse)
 async def replyok(reply: NewReply, db: Session = Depends(get_db)):
     try:
+        # 디버깅을 위한 로그 추가
+        print(f"Received reply: {reply}")
         if BoardService.insert_reply(db, reply):
             return RedirectResponse(f'/board/view/{reply.bno}', 303)
     except Exception as ex:
         print(f'▷▷▷ replyok에서 오류 발생: {str(ex)}')
         return RedirectResponse(url='/member/error', status_code=303)
-
-
+        
 @board_router.post("/rreply", response_class=HTMLResponse)
 async def rreplyok(reply: NewReply, db: Session = Depends(get_db)):
     try:
+        # 대댓글 삽입
         if BoardService.insert_rreply(db, reply):
             return RedirectResponse(f'/board/view/{reply.bno}', 303)
     except Exception as ex:
@@ -110,7 +112,7 @@ async def rreplyok(reply: NewReply, db: Session = Depends(get_db)):
 async def delete_board(bno: int, db: Session = Depends(get_db)):
     try:
         # SQLite에서 외래 키 제약 조건 활성화
-        db.execute(text("PRAGMA foreign_keys=ON"))
+        #db.execute(text("PRAGMA foreign_keys=ON"))
 
         result = BoardService.delete_board(db, bno)
 
@@ -122,6 +124,15 @@ async def delete_board(bno: int, db: Session = Depends(get_db)):
         db.rollback()  # 오류 발생 시 롤백
         print(f'▷▷▷ delete_board에서 오류 발생: {str(ex)}')
         raise HTTPException(status_code=500, detail=f"삭제 중 오류가 발생했습니다: {str(ex)}")
+
+
+@board_router.get("/update/{bno}")
+async def get_update_page(bno: int, request: Request, db: Session = Depends(get_db)):
+    board = db.query(Board).filter(Board.bno == bno).one_or_none()
+    if not board:
+        raise HTTPException(status_code=404, detail="Board not found")
+
+    return templates.TemplateResponse('board/update.html', {'request': request, 'board': board})
 
 
 @board_router.post('/update/{bno}')
